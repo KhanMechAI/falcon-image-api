@@ -1,0 +1,8 @@
+SQLAlchemy
+falcon
+pytest
+waitress
+pydantic
+spectree
+sqlalchemy-utils
+falcon-sqla
