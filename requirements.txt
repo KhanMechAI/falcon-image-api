@@ -6,3 +6,4 @@ pydantic
 spectree
 sqlalchemy-utils
 falcon-sqla
+werkzeug
