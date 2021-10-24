@@ -1,0 +1,12 @@
+dirs:
+  dev:
+    root: "/"
+    images: "{dirs.dev.root}images/"
+
+
+
+database:
+  dev:
+    sqlite:
+      name: "imageapi.db"
+      connection_string: "sqlite://{dirs.dev.root}{database.dev.name}"
