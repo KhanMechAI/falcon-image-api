@@ -15,22 +15,6 @@ manager = falcon_sqla.Manager(engine)
 
 Base = declarative_base()
 
-
-# class ChoiceType(types.TypeDecorator):
-#     """ Use this class to create multiple choices for a model"""
-#     impl = types.String
-#
-#     def __init__(self, choices, **kw):
-#         self.choices = dict(choices)
-#         super(ChoiceType, self).__init__(**kw)
-#
-#     def process_bind_param(self, value, dialect):
-#         return [k for k, v in self.choices.items() if v == value][0]
-#
-#     def process_result_value(self, value, dialect):
-#         return self.choices[value]
-
-
 class User(Base):
     __tablename__ = "users"
 
