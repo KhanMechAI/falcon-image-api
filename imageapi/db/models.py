@@ -1,9 +1,9 @@
 import uuid
 
 import falcon_sqla
-from sqlalchemy import Column, Float, ForeignKeyConstraint, Integer, String, create_engine, types
+from sqlalchemy import Column, Float, ForeignKey, ForeignKeyConstraint, Integer, String, Table, create_engine, types
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import declarative_base
+from sqlalchemy.orm import declarative_base, relationship
 from sqlalchemy.sql import func
 from sqlalchemy.types import CHAR, TypeDecorator
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -30,7 +30,7 @@ class ChoiceType(types.TypeDecorator):
 
 
 class User(Base):
-    __tablename__ = "user"
+    __tablename__ = "users"
     __table_args__ = (
         ForeignKeyConstraint(["id"], ["session.id"]),
         {"autoload": True}
@@ -64,7 +64,7 @@ class Session(Base):
 class Usage(Base):
     __tablename__ = "usage"
     __table_args__ = (
-        ForeignKeyConstraint(["id"], ["remote_table.id"]),
+        ForeignKeyConstraint(["id"], ["users.id"]),
         {"autoload": True}
     )
 
@@ -74,15 +74,54 @@ class Usage(Base):
     resource = Column(ChoiceType())  # ToDo
     response = Column()  # ToDo
 
+image_tags = Table(
+    "image_tags",
+    Base.metadata,
+    Column(
+        "images_id",
+        ForeignKey("images.id"),
+        primary_key=True
+    ),
+    Column(
+        "tags_id",
+        ForeignKey("tags.id"),
+        primary_key=True
+    )
+)
 
-class Tags(Base):
+class Tag(Base):
     __tablename__ = "tags"
     id = Column(Integer, primary_key=True, autoincrement=True)
     tag = Column(String)
+    images = relationship(
+        "Image",
+        secondary=image_tags,
+        backpopulates="images"
+    )
+
+    def __init__(self, tag):
+        self.tag = tag
 
 
-class Images(Base):
+class Image(Base):
     __tablename__ = "images"
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String)
     image_type = Column() # ToDo add choices
+    size = Column(Integer)
+    tags = relationship(
+        "Tag",
+        secondary=image_tags,
+        backpopulates="tags"
+    )
+    owner = relationship(
+        "User",
+        backpopulates="users"
+    )
+
+    def __init__(self, name, image_type,size, uri):
+        self.name = name
+        self.image_type = image_type
+        self.size = size
+        self.uri = uri
+
