@@ -1,7 +1,8 @@
 import uuid
 
 import falcon_sqla
-from sqlalchemy import Column, Float, ForeignKey, ForeignKeyConstraint, Integer, String, Table, create_engine, types
+from sqlalchemy import Column, Float, ForeignKey, ForeignKeyConstraint, Integer, LargeBinary, String, Table, \
+    create_engine, types
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import declarative_base, relationship
 from sqlalchemy.sql import func
@@ -47,12 +48,17 @@ class User(Base):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
+# Users may apply for multiple tokens. Future would be that different tokens have different permissions
 class Token:
     __tablename__ = "token"
     id = Column(Integer, primary_key=True, autoincrement=True)
     token = Column(String)
     expiry = Column(Float, server_default=func.utcnow())
-    user_id = #
+    user_id = Column(Integer, ForeignKey("users.id"))
+    user = relationship(
+        "User",
+        backref="users"
+    )
 
 class Session(Base):
     __tablename__ = "session"
@@ -70,7 +76,11 @@ class Usage(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     timestamp = Column(Float, server_default=func.utcnow())
-    user_id = ForeignKey()
+    user_id = Column(Integer, ForeignKey("users.id"))
+    user = relationship(
+        "User",
+        backref="users"
+    )
     resource = Column(ChoiceType())  # ToDo
     response = Column()  # ToDo
 
@@ -105,21 +115,27 @@ class Tag(Base):
 
 class Image(Base):
     __tablename__ = "images"
+    IMAGE_CHOICES = (
+
+    )
     id = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(String)
-    image_type = Column() # ToDo add choices
+    name = Column(String) # original file name
+    image_type = Column(ChoiceType()) # ToDo add choices
+    uuid = Column(LargeBinary(length=16), unique=True)
+    uri = Column(String) # Storage path of image
     size = Column(Integer)
     tags = relationship(
         "Tag",
         secondary=image_tags,
         backpopulates="tags"
     )
-    owner = relationship(
+    user_id = Column(Integer, ForeignKey("users.id"))
+    user = relationship(
         "User",
-        backpopulates="users"
+        backref="users"
     )
 
-    def __init__(self, name, image_type,size, uri):
+    def __init__(self, name, image_type, size, uri):
         self.name = name
         self.image_type = image_type
         self.size = size
