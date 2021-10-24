@@ -1,19 +1,11 @@
-import uuid
-
-import falcon_sqla
-from sqlalchemy import Column, Float, ForeignKey, ForeignKeyConstraint, Integer, LargeBinary, String, Table, \
-    create_engine, types
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Column, Float, ForeignKey, Integer, LargeBinary, String, Table
 from sqlalchemy.orm import declarative_base, relationship
 from sqlalchemy.sql import func
-from sqlalchemy.types import CHAR, TypeDecorator
 from sqlalchemy_utils import ChoiceType
 from werkzeug.security import check_password_hash, generate_password_hash
 
-engine = create_engine("dialect+driver://my/database")  # ToDo
-manager = falcon_sqla.Manager(engine)
-
 Base = declarative_base()
+
 
 class User(Base):
     __tablename__ = "users"
@@ -31,7 +23,7 @@ class User(Base):
 
 
 # Users may apply for multiple tokens. Future would be that different tokens have different permissions
-class Token:
+class Token(Base):
     __tablename__ = "token"
     id = Column(Integer, primary_key=True, autoincrement=True)
     token = Column(String)
@@ -102,7 +94,7 @@ class Image(Base):
     type = Column(ChoiceType(IMAGE_TYPES))
     image_uuid = Column(LargeBinary(length=16), unique=True)
     uri = Column(String)  # Storage path of image
-    size = Column(Integer) # number of bytes
+    size = Column(Integer)  # number of bytes
     tags = relationship(
         "Tag",
         secondary=image_tags,
