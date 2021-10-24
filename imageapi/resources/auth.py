@@ -1,15 +1,16 @@
 import falcon
 import json
 from ..schemas.base_api_spec import api
-# from ..schemas.image import UserSchema
+from ..schemas.user import RegisterSchema
 
 
-class User:
-    def __init__(self, image_store=None):
-        self._image_store = image_store
+class Register:
+    def __init__(self):
+        pass
 
-    @api.validate(json=UserSchema)
-    def on_get(self, req, resp, **params):
+    # Todo: Check for already registered user.
+    @api.validate(json=RegisterSchema)
+    def on_post(self, req, resp, **params):
         """
         get an image resource
 
@@ -21,4 +22,13 @@ class User:
             # "ImageType": "image/png"
         }
         resp.text = json.dumps(doc, ensure_ascii=True)
-        resp.status = falcon.HTTP_200
+        resp.status = falcon.HTTP_201
+
+
+
+class Authenticate:
+
+    def __init__(self):
+        pass
+
+
