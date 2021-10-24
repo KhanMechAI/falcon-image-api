@@ -1,3 +1,5 @@
+from enum import Enum
+
 from sqlalchemy import Column, Float, ForeignKey, Integer, LargeBinary, String, Table
 from sqlalchemy.orm import declarative_base, relationship
 from sqlalchemy.sql import func
@@ -75,30 +77,32 @@ class Tag(Base):
     images = relationship(
         "Image",
         secondary=image_tags,
-        backpopulates="images"
+        backref="images"
     )
 
     def __init__(self, tag):
         self.tag = tag
 
 
+class ImageTypes(Enum):
+    tif = 1
+    jpeg = 2
+    png = 3
+
+
 class Image(Base):
     __tablename__ = "images"
-    IMAGE_TYPES = (
-        "tif",
-        "jpeg",
-        "png",
-    )
+
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String)  # original file name
-    type = Column(ChoiceType(IMAGE_TYPES))
+    type = Column(ChoiceType(ImageTypes))
     image_uuid = Column(LargeBinary(length=16), unique=True)
     uri = Column(String)  # Storage path of image
     size = Column(Integer)  # number of bytes
     tags = relationship(
         "Tag",
         secondary=image_tags,
-        backpopulates="tags"
+        backref="tags"
     )
     user_id = Column(Integer, ForeignKey("users.id"))
     user = relationship(
