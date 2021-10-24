@@ -15,7 +15,7 @@ Base = declarative_base()
 
 
 class ChoiceType(types.TypeDecorator):
-    ''' Use this class to create multiple choices for a model'''
+    """ Use this class to create multiple choices for a model"""
     impl = types.String
 
     def __init__(self, choices, **kw):
@@ -47,6 +47,12 @@ class User(Base):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
+class Token:
+    __tablename__ = "token"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    token = Column(String)
+    expiry = Column(Float, server_default=func.utcnow())
+    user_id = #
 
 class Session(Base):
     __tablename__ = "session"
