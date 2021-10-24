@@ -1,34 +1,27 @@
 import falcon
-from .middleware.jwt_checker import jwt_checker
-from .resources.image import Image
-from .db.manager import init_db
-import dynamic_yaml
-
-with open('config.yaml') as conf:
-    config = dynamic_yaml.load(conf)
-
-manager = init_db(config.databases.dev.sqlite)
-
-app = application = falcon.App(
-    middleware=[
-        jwt_checker,
-        manager
-    ]
-)
+from middleware.jwt_checker import jwt_checker
+from resources.image import Image
+from db.manager import init_db
+from schemas.base_api_spec import api
 
 
-image = Image()
-app.add_route('/image', image)
+class ImageAPI(falcon.App):
 
-from .schemas.base_api_spec import api
+    def __init__(self, app_config, db_config):
+        super(ImageAPI, self).__init__(
+            middleware=[
+                # jwt_checker,
+                init_db(db_config.connection_string)  # DBManager middleware
+            ]
+        )
 
-api.register(app)
+        image = Image()
+        self.add_route('/api/image', image)
 
-if __name__ == "__main__":
-    from wsgiref.simple_server import make_server
-
-    with make_server('', 8080, app) as httpd:
-        print('Serving on port 8080...')
-
-        # Serve until process is killed
-        httpd.serve_forever()
+        api.register(self)
+    #
+    # def start(self):
+    #     pass
+    #
+    # def stop(self):
+    #     pass

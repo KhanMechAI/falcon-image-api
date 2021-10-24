@@ -1,14 +1,15 @@
 import falcon
 import json
-from ..schemas.base_api_spec import api
-from ..schemas.image import ImageSchema
+from spectree import Response
+from schemas.base_api_spec import api
+from schemas.image import ImageSchema
 
 
 class Image:
     def __init__(self, image_store=None):
         self._image_store = image_store
 
-    @api.validate(json=ImageSchema)
+    @api.validate(resp=Response(HTTP_200=ImageSchema))
     def on_get(self, req, resp, **params):
         """
         get an image resource
@@ -17,8 +18,10 @@ class Image:
         """
         doc = {
             "name": "test",
-            "size":1024,
-            "ImageType": "image/png"
+            "size": 1024,
+            "type": "image/jpeg"
         }
-        resp.text = json.dumps(doc, ensure_ascii=True)
-        resp.status = falcon.HTTP_200
+        resp.media = doc
+
+    def on_post(self):
+        pass

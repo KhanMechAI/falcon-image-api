@@ -1,0 +1,13 @@
+host: "localhost"
+port: 8000
+
+
+dev:
+  dirs:
+    root: "/"
+    images: "{dev.dirs.root}images/"
+
+  database:
+    sqlite:
+      name: "imageapi.db"
+      connection_string: "sqlite://{dev.dirs.root}{dev.database.sqlite.name}"
