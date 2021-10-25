@@ -11,7 +11,7 @@ from schemas.image import GetResponse, PostResponse
 from utils import ImageHandler
 
 
-class GetImageResource:
+class GetImageIDResource:
     def __init__(self, image_handler: ImageHandler):
         self.image_handler: ImageHandler = image_handler
 
@@ -41,38 +41,17 @@ class GetImageResource:
             # resp.downloadable_as = image.path # undecided on this
 
     @api.validate(resp=Response(HTTP_200=None, HTTP_404=None, HTTP_403=None))
-    def on_put(self, req, resp, img_id):
-        if not (new_tags := req.media):
-            resp.status =  falcon.HTTP_304
-            resp.media = {
-                "title": "Resouce not modified",
-                "description": "Empty payload, requires tags to be submitted."
-            }
-            return
-
-
+    def on_delete(self, req, resp, img_id):
         with req.context.session as session:
 
             if not (image := session.query(Image).filter_by(id=img_id).first()):
                 raise falcon.HTTPNotFound()
             elif image.user.email != req.context.user_email:
                 raise falcon.HTTPNotFound()
-
-            [image.tags.remove(t) for t in image.tags]
-
-            for tag in new_tags["tags"]:
-                if not (new_tag := session.query(Tag).filter_by(tag=tag).first()):
-                    new_tag = Tag(tag=tag)
-
-                image.tags.append(new_tag)
-
-
-
-            session.add(image)
+            session.delete(image)
             session.commit()
 
-            resp.stream, resp.content_length = self.image_handler.load(image.path), image.size
-            resp.media = {"tags": [x.name for x in image.tags]}
+        resp.status = falcon.HTTP_200
 
 
 
