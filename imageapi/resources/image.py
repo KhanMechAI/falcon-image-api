@@ -19,7 +19,7 @@ class GetImageResource:
     def __repr__(self):
         return "Image Resource"
 
-    @api.validate(resp=Response(HTTP_200=None, HTTP_404=None, HTTP_403=None))
+    @api.validate(resp=Response(HTTP_200=GetResponse, HTTP_404=None, HTTP_403=None))
     def on_get(self, req, resp, img_id):
         """
         Get image by ID
@@ -28,17 +28,52 @@ class GetImageResource:
         """
 
         with req.context.session as session:
-            user_sbq = session.query(User).where(User.email == req.context.user_email).subquery()
 
-            if not (image := session.query(Image).join(user_sbq, Image.user_id == user_sbq.c.id).filter_by(
-                    id=img_id
-                    ).first()):
+            if not (image := session.query(Image).filter_by(id=img_id).first()):
+                raise falcon.HTTPNotFound()
+            elif image.user.email != req.context.user_email:
                 raise falcon.HTTPNotFound()
 
             resp.content_type = image.content_type
 
             resp.stream, resp.content_length = self.image_handler.load(image.path), image.size
-            resp.downloadable_as = image.path
+            resp.media = {"tags":[x.name for x in image.tags]}
+            # resp.downloadable_as = image.path # undecided on this
+
+    @api.validate(resp=Response(HTTP_200=None, HTTP_404=None, HTTP_403=None))
+    def on_put(self, req, resp, img_id):
+        if not (new_tags := req.media):
+            resp.status =  falcon.HTTP_304
+            resp.media = {
+                "title": "Resouce not modified",
+                "description": "Empty payload, requires tags to be submitted."
+            }
+            return
+
+
+        with req.context.session as session:
+
+            if not (image := session.query(Image).filter_by(id=img_id).first()):
+                raise falcon.HTTPNotFound()
+            elif image.user.email != req.context.user_email:
+                raise falcon.HTTPNotFound()
+
+            [image.tags.remove(t) for t in image.tags]
+
+            for tag in new_tags["tags"]:
+                if not (new_tag := session.query(Tag).filter_by(tag=tag).first()):
+                    new_tag = Tag(tag=tag)
+
+                image.tags.append(new_tag)
+
+
+
+            session.add(image)
+            session.commit()
+
+            resp.stream, resp.content_length = self.image_handler.load(image.path), image.size
+            resp.media = {"tags": [x.name for x in image.tags]}
+
 
 
 

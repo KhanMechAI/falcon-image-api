@@ -1,17 +1,123 @@
-class Tag:
-    def on_get(self, req, resp):
+import falcon
+from spectree import Response
+
+from db.models import Image, Tag
+from schemas.base_api_spec import api
+from schemas.image import GetResponse
+from utils import ImageHandler
+
+
+class TagResource:
+    def __init__(self, image_handler: ImageHandler):
+        self.image_handler: ImageHandler = image_handler
+
+    def __repr__(self):
+        return "Image Resource"
+
+    @api.validate(resp=Response(HTTP_200=GetResponse, HTTP_404=None, HTTP_403=None))
+    def on_get(self, req, resp, img_id):
         """
-        get an image resource
+        Get image by ID
 
-        returns an image with a specified ID
+        Returns the image file specified by the ID. ID's are returned when the image is posted.
         """
-        doc = {
-            "name": "test",
-            "size": 1024,
-            "type": "image/png"
-        }
-        resp.media = doc
 
-    def on_post(self):
-        pass
+        with req.context.session as session:
 
+            if not (image := session.query(Image).filter_by(id=img_id).first()):
+                raise falcon.HTTPNotFound()
+            elif image.user.email != req.context.user_email:
+                raise falcon.HTTPNotFound()
+
+            resp.content_type = image.content_type
+
+            resp.stream, resp.content_length = self.image_handler.load(image.path), image.size
+            resp.media = {"tags": [x.name for x in image.tags]}
+            # resp.downloadable_as = image.path # undecided on this
+
+    @api.validate(resp=Response(HTTP_200=None, HTTP_404=None, HTTP_403=None))
+    def on_put(self, req, resp, img_id):
+        if not (new_tags := req.media):
+            resp.status = falcon.HTTP_304
+            resp.media = {
+                "title": "Resouce not modified",
+                "description": "Empty payload, requires tags to be submitted."
+            }
+            return
+
+        with req.context.session as session:
+
+            if not (image := session.query(Image).filter_by(id=img_id).first()):
+                raise falcon.HTTPNotFound()
+            elif image.user.email != req.context.user_email:
+                raise falcon.HTTPNotFound()
+
+            [image.tags.remove(t) for t in image.tags]
+
+            for tag in new_tags["tags"]:
+                if not (new_tag := session.query(Tag).filter_by(tag=tag).first()):
+                    new_tag = Tag(tag=tag)
+
+                image.tags.append(new_tag)
+
+            session.add(image)
+            session.commit()
+
+            resp.media = {"tags": [x.name for x in image.tags]}
+
+    #Need json
+    @api.validate(resp=Response(HTTP_200=None, HTTP_404=None, HTTP_403=None))
+    def on_patch(self, req, resp, img_id):
+        if not (new_tags := req.media):
+            resp.status = falcon.HTTP_304
+            resp.media = {
+                "title": "Resouce not modified",
+                "description": "Empty payload, requires tags to be submitted."
+            }
+            return
+
+        with req.context.session as session:
+
+            if not (image := session.query(Image).filter_by(id=img_id).first()):
+                raise falcon.HTTPNotFound()
+            elif image.user.email != req.context.user_email:
+                raise falcon.HTTPNotFound()
+
+            for tag in new_tags["tags"]["old"]:
+                if not (new_tag := session.query(Tag).filter_by(tag=tag).first()):
+                    image.tags.remove(new_tag)
+
+            for tag in new_tags["tags"]["new"]:
+                if not (new_tag := session.query(Tag).filter_by(tag=tag).first()):
+                    image.tags.append(new_tag)
+
+            session.add(image)
+            session.commit()
+
+            resp.media = {"tags": [x.name for x in image.tags]}
+
+    @api.validate(resp=Response(HTTP_200=None, HTTP_404=None, HTTP_403=None))
+    def on_delete(self, req, resp, img_id):
+        if not (new_tags := req.media):
+            resp.status = falcon.HTTP_304
+            resp.media = {
+                "title": "Resouce not modified",
+                "description": "Empty payload, requires tags to be submitted."
+            }
+            return
+
+        with req.context.session as session:
+
+            if not (image := session.query(Image).filter_by(id=img_id).first()):
+                raise falcon.HTTPNotFound()
+            elif image.user.email != req.context.user_email:
+                raise falcon.HTTPNotFound()
+
+            [image.tags.remove(t) for t in image.tags]
+
+
+            session.add(image)
+            session.commit()
+
+            resp.stream, resp.content_length = self.image_handler.load(image.path), image.size
+            resp.media = {"tags": [x.name for x in image.tags]}
