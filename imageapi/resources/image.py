@@ -37,11 +37,7 @@ class ImageResource:
                 # Store this body part in a file
                 image_details = self.image_handler.save(part.stream, part.content_type, part.secure_filename)
 
-        resp.media = {
-            "name": image_details["name"],
-            "size": image_details["size"]
-        }
-        resp.status = falcon.HTTP_CREATED
+
 
         with self.db_manager.session_scope() as session:
 
@@ -61,3 +57,10 @@ class ImageResource:
 
             session.add(image)
             session.commit()
+
+        resp.media = {
+            "name": image_details["name"],
+            "size": image_details["size"],
+            "id": image.id,
+        }
+        resp.status = falcon.HTTP_CREATED

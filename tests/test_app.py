@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-import msgpack
+
 import falcon
 from falcon import testing
 import pytest
@@ -19,9 +19,6 @@ def client():
     app_config, db_config = testconfig, testconfig.database.sqlite
     app = ImageAPI(app_config, db_config, util_config)
     return testing.TestClient(app)
-
-
-
 
 
 def test_image(client):
