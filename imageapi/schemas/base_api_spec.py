@@ -2,20 +2,20 @@ from spectree import Response, SpecTree, Tag
 
 
 def before_handler(req, resp, err, instance):
-    # if err:
-    print(req)
-    print(resp)
-    print(err)
+    if err:
+        print(req)
+        print(resp)
+        print(err)
     resp.set_header("X-Error", "Validation Error")
 
 
 def after_handler(req, resp, err, instance):
     resp.set_header("X-Name", instance)
-    if err:
-        print(err)
-        print(resp)
-        print(req)
-    print(resp.get_header("X-Name"))
+    # if err:
+    #     print(err)
+    #     print(resp)
+    #     print(req)
+    # print(resp.get_header("X-Name"))
 
 
 api = SpecTree(
