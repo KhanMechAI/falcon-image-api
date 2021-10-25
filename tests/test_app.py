@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-
+import msgpack
 import falcon
 from falcon import testing
 import pytest
@@ -10,18 +10,18 @@ from unittest.mock import MagicMock
 from utils import load_config
 
 config = load_config(Path.cwd().parent / "imageapi" / "config.yml")
+util_config = config.utils
 testconfig = config.test
 
 
 @pytest.fixture
 def client():
     app_config, db_config = testconfig, testconfig.database.sqlite
-    app = ImageAPI(app_config, db_config)
+    app = ImageAPI(app_config, db_config, util_config)
     return testing.TestClient(app)
 
 
-def test_post_image(client):
-    pass
+
 
 
 def test_image(client):
