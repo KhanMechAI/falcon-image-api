@@ -48,12 +48,58 @@ class GetImageIDResource:
                 raise falcon.HTTPNotFound()
             elif image.user.email != req.context.user_email:
                 raise falcon.HTTPNotFound()
+
+            delete_state = self.image_handler.delete(image.path)
+            session.delete(image)
+            session.commit()
+
+        if not delete_state:
+            raise falcon.HTTPNotFound(
+                title="Not Found",
+                description="Resource not found on server"
+            )
+
+
+class GetImageTagResource:
+    def __init__(self, image_handler: ImageHandler):
+        self.image_handler: ImageHandler = image_handler
+
+    def __repr__(self):
+        return "Image Resource"
+
+    @api.validate(resp=Response(HTTP_200=GetResponse, HTTP_404=None, HTTP_403=None))
+    def on_get(self, req, resp, tag):
+        """
+        Get image by ID
+
+        Returns the image file specified by the ID. ID's are returned when the image is posted.
+        """
+
+        with req.context.session as session:
+
+            if not (image := session.query(Image).filter_by(id=tag).first()):
+                raise falcon.HTTPNotFound()
+            elif image.user.email != req.context.user_email:
+                raise falcon.HTTPNotFound()
+
+            resp.content_type = image.content_type
+
+            resp.stream, resp.content_length = self.image_handler.load(image.path), image.size
+            resp.media = {"tags": [x.name for x in image.tags]}
+            # resp.downloadable_as = image.path # undecided on this
+
+    @api.validate(resp=Response(HTTP_200=None, HTTP_404=None, HTTP_403=None))
+    def on_delete(self, req, resp, img_id):
+        with req.context.session as session:
+
+            if not (image := session.query(Image).filter_by(id=img_id).first()):
+                raise falcon.HTTPNotFound()
+            elif image.user.email != req.context.user_email:
+                raise falcon.HTTPNotFound()
             session.delete(image)
             session.commit()
 
         resp.status = falcon.HTTP_200
-
-
 
 
 class PostImageResource:
