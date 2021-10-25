@@ -8,11 +8,8 @@ from utils import ImageHandler
 
 
 class TagResource:
-    def __init__(self, image_handler: ImageHandler):
-        self.image_handler: ImageHandler = image_handler
-
     def __repr__(self):
-        return "Image Resource"
+        return "Tag Resource"
 
     @api.validate(resp=Response(HTTP_200=GetResponse, HTTP_404=None, HTTP_403=None))
     def on_get(self, req, resp, img_id):

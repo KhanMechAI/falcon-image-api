@@ -1,9 +1,7 @@
 import json
 
 import falcon
-from falcon_sqla import Manager
 from spectree import Response
-
 
 from db.models import Image, Tag, User
 from schemas.base_api_spec import api
@@ -77,15 +75,32 @@ class GetImageTagResource:
 
         with req.context.session as session:
 
-            if not (image := session.query(Image).filter_by(id=tag).first()):
-                raise falcon.HTTPNotFound()
-            elif image.user.email != req.context.user_email:
-                raise falcon.HTTPNotFound()
+            if not (session.query(Tag).filter_by(Tag.tag==tag).first()):
+                raise falcon.HTTPNotFound(
+                    title="Tag Not Found",
+                    description="The supplied tag was not found on the server"
+                )
 
-            resp.content_type = image.content_type
+            images = (
+                session.query(Image)
+                .join(Tag)
+                .where(Tag.tag == tag)
+                .filter(Image.user.email == req.context.user_email)
+                .all()
+            )
 
-            resp.stream, resp.content_length = self.image_handler.load(image.path), image.size
-            resp.media = {"tags": [x.name for x in image.tags]}
+
+            resp.media = {
+                "images": [
+                    {
+                        "img_id": x.id,
+                        "content_type": x.content_type,
+                        "size": x.size,
+                        "name": x.name
+                    }
+                    for x in images
+                ]
+            }
             # resp.downloadable_as = image.path # undecided on this
 
     @api.validate(resp=Response(HTTP_200=None, HTTP_404=None, HTTP_403=None))

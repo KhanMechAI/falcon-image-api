@@ -3,7 +3,6 @@ import mimetypes
 import uuid
 from pathlib import Path
 from typing import Any, Dict
-import jwt
 
 import dynamic_yaml
 
