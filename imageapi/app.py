@@ -2,7 +2,7 @@ import falcon
 from falcon import RequestOptions
 from middleware.auth import AuthMiddleware
 from resources.auth import LoginResource, RegisterResource
-from resources.image import GetImageIDResource, PostImageResource
+from resources.image import GetImageIDResource, PostImageResource, GetImageTagResource
 from db.manager import init_db
 from schemas.base_api_spec import api
 from utils import ImageHandler
@@ -52,8 +52,11 @@ class ImageAPI(falcon.App):
         post_image = PostImageResource(im_handler)
         self.add_route("/api/image", post_image)
 
-        get_image = GetImageIDResource(im_handler)
-        self.add_route("/api/image/{img_id:int}", get_image)
+        get_image_by_id = GetImageIDResource(im_handler)
+        self.add_route("/api/image/{img_id:int}", get_image_by_id)
+
+        get_image_by_tags = GetImageTagResource(im_handler)
+        self.add_route("/api/images/{tag}", get_image_by_tags)
 
 
 
