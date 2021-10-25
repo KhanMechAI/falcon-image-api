@@ -97,7 +97,7 @@ class Image(Base):
     name = Column(String)  # original file name
     type = Column(ChoiceType(ImageTypes))
     image_uuid = Column(LargeBinary(length=16), unique=True)
-    uri = Column(String)  # Storage path of image
+    path = Column(String)  # Storage path of image
     size = Column(Integer)  # number of bytes
     tags = relationship(
         "Tag",

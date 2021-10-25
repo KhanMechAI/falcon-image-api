@@ -1,20 +1,14 @@
-import logging
-
-import falcon
-import json
-from spectree import Response
-from schemas.base_api_spec import api
-from schemas.image import ImageSchema
-from imageapi.utils import check_mode
-
-
+import io
+import mimetypes
+import uuid
+from pathlib import Path
 
 
 class Image:
-    def __init__(self, mode):
-        self.mode = mode
+    def __init__(self, config, image_handler):
+        self.config = config
+        self.image_handler = image_handler
 
-    @check_mode("mode", api.validate(resp=Response(HTTP_200=ImageSchema)))
     def on_get(self, req, resp):
         """
         get an image resource
@@ -27,41 +21,42 @@ class Image:
             "type": "image/png"
         }
         resp.media = doc
-        logger.debug("ping <> pong")
 
-    def on_post(self):
-        pass
-
-    def __repr__(self):
-        return "Image Route"
+    def on_post(self, req, resp):
+        image_details = self.image_handler.save(req.stream, req.content_type)
 
 
-class JSONFormatter(logging.Formatter):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        lr = logging.LogRecord(None, None, "", 0, "", (), None, None)
-        self.default_keys = [key for key in lr.__dict__]
+class ImageHandler:
+    _CHUNK_SIZE_BYTES = 4096
 
-    def extra_data(self, record):
-        return {
-            key: getattr(record, key)
-            for key in record.__dict__
-            if key not in self.default_keys
-        }
+    def __init__(self, base_out_path: [str, Path], uuidgen=uuid.uuid4, fopen=io.open):
+        self.root: Path = Path(base_out_path)
+        self._uuidgen = uuidgen
+        self._fopen = fopen
 
-    def format(self, record):
-        log_data = {
-            "severity": record.levelname,
-            "path_name": record.pathname,
-            "function_name": record.funcName,
-            "message": record.msg,
-            **self.extra_data(record),
-        }
-        return json.dumps(log_data)
+    def save(self, image_stream, image_content_type, orig_image_name) -> dict:
+        ext = mimetypes.guess_extension(image_content_type)
+        im_type = ext.replace(".", "")
+        image_uuid = self._uuidgen()
+        name = f"{image_uuid}{ext}"
+        image_path = self.root / name
+        size = 0
+        with self._fopen(image_path, "wb") as image_file:
+            chunk = image_stream.read(self._CHUNK_SIZE_BYTES)
+            size += len(chunk)
+            while chunk is not None:
+                image_file.write(chunk)
 
+        return dict(
+            original_name=orig_image_name,
+            type=im_type,
+            uuid=image_uuid,
+            path=str(image_path),
+            size=size
+        )
 
-logger = logging.getLogger()
-handler = logging.StreamHandler()
-handler.setFormatter(JSONFormatter())
-logger.addHandler(handler)
-logger.setLevel(logging.DEBUG)
+    def load(self, path: [str, Path]):
+        with self._fopen(path, "rb") as image_file:
+            img_bytes = image_file.read()
+
+        return  img_bytes

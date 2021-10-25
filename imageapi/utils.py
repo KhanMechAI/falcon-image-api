@@ -1,6 +1,7 @@
-import dynamic_yaml
 from pathlib import Path
-from functools import update_wrapper, partial
+
+import dynamic_yaml
+
 
 def load_config(config_path: Path):
     with open(config_path) as conf:
