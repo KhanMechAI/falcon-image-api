@@ -22,12 +22,13 @@ class WaitressServer:
 def main(deployment: str):
 
     config = load_config(Path.cwd() / "imageapi" / "config.yml")
+    utils_config = config.utils
     # Can add production deployments here
     if deployment == "dev":
         app_config = config.dev
         db_config = app_config.database.sqlite
 
-    app = ImageAPI(app_config, db_config)
+    app = ImageAPI(app_config, db_config, utils_config)
 
     with make_server('', 8000, app) as httpd:
         print('Serving on port 8000...')

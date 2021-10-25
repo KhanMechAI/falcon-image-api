@@ -1,12 +1,15 @@
 host: "localhost"
 port: 8000
 
+utils:
+  ImageHandler:
+    chunk_size: 4096
 
 dev:
   name: "dev"
   dirs:
     root: "/"
-    images: "{dev.dirs.root}images/"
+    images: "images/"
   routes:
     base: "/api"
     Image: "{dev.routes.base}/image"

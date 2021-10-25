@@ -11,4 +11,4 @@ def init_db(connection: str = None, create_db: bool = True) -> Manager:
         create_database(engine.url)
         Base.metadata.create_all(engine)
 
-    return Manager(engine).middleware
+    return Manager(engine)

@@ -33,7 +33,7 @@ class Token(Base):
     user_id = Column(Integer, ForeignKey("users.id"))
     user = relationship(
         "User",
-        backref="users"
+        backref="tokens"
     )
 
 
@@ -48,7 +48,7 @@ class Usage(Base):
     user_id = Column(Integer, ForeignKey("users.id"))
     user = relationship(
         "User",
-        backref="users"
+        backref="usage"
     )
     # resource = Column(ChoiceType())  # ToDo
     # response = Column()  # ToDo
@@ -74,11 +74,6 @@ class Tag(Base):
     __tablename__ = "tags"
     id = Column(Integer, primary_key=True, autoincrement=True)
     tag = Column(String, unique=True)
-    images = relationship(
-        "Image",
-        secondary=image_tags,
-        backref="images"
-    )
 
     def __init__(self, tag):
         self.tag = tag
@@ -95,24 +90,26 @@ class Image(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String)  # original file name
-    type = Column(ChoiceType(ImageTypes))
-    image_uuid = Column(LargeBinary(length=16), unique=True)
+    type = Column(String)
+    content_type = Column(String)
+    uuid = Column(LargeBinary(length=16), unique=True)
     path = Column(String)  # Storage path of image
     size = Column(Integer)  # number of bytes
     tags = relationship(
         "Tag",
         secondary=image_tags,
-        backref="tags"
+        backref="images"
     )
     user_id = Column(Integer, ForeignKey("users.id"))
     user = relationship(
         "User",
-        backref="users"
+        backref="images"
     )
 
-    def __init__(self, name, image_type, size, uri, image_uuid):
+    def __init__(self, name: str, image_type:str, content_type:str, size:int, path:str, image_uuid:bytes):
         self.name = name
         self.type = image_type
+        self.content_type = content_type
         self.size = size
-        self.uri = uri
-        self.image_uuid = image_uuid
+        self.path = path
+        self.uuid = image_uuid
