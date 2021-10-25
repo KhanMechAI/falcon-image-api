@@ -14,11 +14,13 @@ class ImageAPI(falcon.App):
                 init_db(db_config.connection_string)  # DBManager middleware
             ]
         )
-
-        image = Image()
-        self.add_route('/api/image', image)
+        self.config = app_config
+        image = Image(self.config.name)
+        self.add_route(self.config.routes.Image, image)
 
         api.register(self)
+
+
     #
     # def start(self):
     #     pass

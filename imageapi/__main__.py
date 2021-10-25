@@ -1,6 +1,7 @@
 from waitress import serve
 import dynamic_yaml
 from pathlib import Path
+from utils import load_config
 
 from app import ImageAPI
 
@@ -19,9 +20,8 @@ class WaitressServer:
 
 
 def main(deployment: str):
-    with open(Path().cwd() / "imageapi" / "config.yml") as conf:
-        config = dynamic_yaml.load(conf)
 
+    config = load_config(Path.cwd() / "imageapi" / "config.yml")
     # Can add production deployments here
     if deployment == "dev":
         app_config = config.dev

@@ -3,11 +3,26 @@ port: 8000
 
 
 dev:
+  name: "dev"
   dirs:
     root: "/"
     images: "{dev.dirs.root}images/"
+  routes:
+    base: "/api"
+    Image: "{dev.routes.base}/image"
 
   database:
     sqlite:
       name: "imageapi.db"
       connection_string: "sqlite://{dev.dirs.root}{dev.database.sqlite.name}"
+test:
+  name: "test"
+  dirs:
+    root: "tests/"
+    images: "{test.dirs.root}images/"
+  routes:
+    base: "/testapi"
+    Image: "{test.routes.base}/image"
+  database:
+    sqlite:
+      connection_string: "sqlite://"

@@ -7,3 +7,4 @@ spectree
 sqlalchemy-utils
 falcon-sqla
 werkzeug
+dynamic-yaml

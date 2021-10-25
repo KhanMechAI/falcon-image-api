@@ -1,7 +1,7 @@
 import falcon
 import json
 from ..schemas.base_api_spec import api
-from ..schemas.user import RegisterSchema
+from ..schemas.auth import RegisterSchema
 
 
 class Register:
@@ -17,9 +17,9 @@ class Register:
         returns an image with a specified ID
         """
         doc = {
-            # "name": "test",
-            # "size": 1024,
-            # "ImageType": "image/png"
+            "name": "test",
+            "size": 1024,
+            "ImageType": "image/png"
         }
         resp.text = json.dumps(doc, ensure_ascii=True)
         resp.status = falcon.HTTP_201
