@@ -10,7 +10,7 @@ from imageapi.schemas.base_api_spec import api
 from utils import load_config
 
 config = load_config(Path.cwd().parent / "imageapi" / "config.yml")
-testconfig = config.test
+testconfig = config.dev
 
 @pytest.fixture
 def client():
