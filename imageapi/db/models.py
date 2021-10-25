@@ -1,13 +1,29 @@
 from enum import Enum
 
-from sqlalchemy import Column, Float, ForeignKey, Integer, LargeBinary, String, Table
+from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer, LargeBinary, String, Table
+from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.orm import declarative_base, relationship
-from sqlalchemy.sql import func
-from sqlalchemy_utils import ChoiceType
+from sqlalchemy.sql import expression, func
+
+from datetime import datetime
+
 from werkzeug.security import check_password_hash, generate_password_hash
 
 Base = declarative_base()
 
+
+class utcnow(expression.FunctionElement):
+    type = DateTime()
+
+
+@compiles(utcnow, 'postgresql')
+def pg_utcnow(element, compiler, **kw):
+    return "TIMEZONE('utc', CURRENT_TIMESTAMP)"
+
+
+@compiles(utcnow, 'mssql')
+def ms_utcnow(element, compiler, **kw):
+    return "GETUTCDATE()"
 
 class User(Base):
     __tablename__ = "users"
@@ -15,26 +31,20 @@ class User(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     email = Column(String)
     password_hash = Column(String)
-    timestamp_created = Column(Float, server_default=func.utcnow())
+    timestamp_created = Column(Float, default=datetime.utcnow().timestamp())
+    timestamp_modified = Column(Float, default=datetime.utcnow().timestamp(), onupdate=datetime.utcnow(
+
+    ).timestamp())
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password, method="pbkdf2:sha256", salt_length=16)
 
-    def check_password(self, password):
+    def check_password(self, password) -> bool:
         return check_password_hash(self.password_hash, password)
 
-
-# Users may apply for multiple tokens. Future would be that different tokens have different permissions
-class Token(Base):
-    __tablename__ = "token"
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    token = Column(String)
-    expiry = Column(Float, server_default=func.utcnow())
-    user_id = Column(Integer, ForeignKey("users.id"))
-    user = relationship(
-        "User",
-        backref="tokens"
-    )
+    def __init__(self, email: str, password: str):
+        self.email = email
+        self.set_password(password)
 
 
 class Usage(Base):
@@ -44,7 +54,7 @@ class Usage(Base):
     )
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    timestamp = Column(Float, server_default=func.utcnow())
+    timestamp = Column(Float, default=datetime.utcnow().timestamp())
     user_id = Column(Integer, ForeignKey("users.id"))
     user = relationship(
         "User",
@@ -105,6 +115,12 @@ class Image(Base):
         "User",
         backref="images"
     )
+    timestamp_created = Column(Float, default=datetime.utcnow().timestamp())
+    timestamp_modified = Column(
+        Float, default=datetime.utcnow().timestamp(), onupdate=datetime.utcnow(
+
+        ).timestamp()
+        )
 
     def __init__(self, name: str, image_type:str, content_type:str, size:int, path:str, image_uuid:bytes):
         self.name = name

@@ -3,6 +3,7 @@ import mimetypes
 import uuid
 from pathlib import Path
 from typing import Any, Dict
+import jwt
 
 import dynamic_yaml
 
@@ -62,8 +63,6 @@ class ImageHandler:
             size=size
         )
 
-    def load(self, path: [str, Path]) -> bytes:
-        with self._fopen(path, "rb") as image_file:
-            img_bytes = image_file.read()
+    def load(self, path: [str, Path]) -> io.open:
 
-        return img_bytes
+        return self._fopen(path, "rb")

@@ -7,7 +7,20 @@ class ImageType(str, Enum):
     png = "image/png"
 
 
-class ImageSchema(BaseModel):
-    name: str = "my_picture.png"
+class GetResponse(BaseModel):
+    stream: bytes = b"image byte string"
+    name: str = "image name"
+
+    class Config:
+        title = "Image"
+        content: ImageType
+
+
+class Query(BaseModel):
+    img_id: int
+
+
+class PostResponse(BaseModel):
+    name: str = "image original name"
     size: int = 512
-    type: ImageType = ImageType.png
+    id: int = 5

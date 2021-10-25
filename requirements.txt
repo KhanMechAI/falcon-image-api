@@ -2,7 +2,8 @@ SQLAlchemy
 falcon
 pytest
 waitress
-sqlalchemy-utils
-falcon-sqla
 werkzeug
-dynamic-yaml
+requests
+pydantic
+spectree
+pyjwt
