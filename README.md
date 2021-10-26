@@ -36,7 +36,7 @@ The default host and port is `localhost:8000`
 
 ## Usage
 
-The `/api/user/register`, `/api/user/login` and `/api/apidoc/swagger` endpoints are unsecured. To inspect API schema head to [Viewing Swagger (OpenAPI) Specification](#markdown-header-viewing-swagger-specification)
+The `/api/user/register`, `/api/user/login` and `/api/apidoc/swagger` endpoints are unsecured. To inspect API schema head to [Viewing Swagger (OpenAPI) Specification](#viewing-swagger-specification)
 
 ## Viewing Swagger Specification
 
