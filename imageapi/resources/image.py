@@ -55,14 +55,15 @@ class GetImageIDResource:
                 raise falcon.HTTPNotFound()
 
             delete_state = self.image_handler.delete(image.path)
+            if not delete_state:
+                raise falcon.HTTPNotFound(
+                    title="Not Found",
+                    description="Resource not found on server"
+                )
             session.delete(image)
             session.commit()
 
-        if not delete_state:
-            raise falcon.HTTPNotFound(
-                title="Not Found",
-                description="Resource not found on server"
-            )
+
 
 
 class GetImageTagResource:
@@ -93,31 +94,33 @@ class GetImageTagResource:
                 }
                 return
 
+            tag = params.get("tag")
+            date_str = params.get('date')
+            start_date = params.get("start_date")
+            end_date = params.get("end_date")
             # Modify query if tag filter specified
-            if "tag" in params:
+            if tag:
                 user_images = user_images.filter(Tag.tag == params["tag"])
 
-            # Modify query if tag filter specified
-            if "date" in params:
+            # Modify query if date filter specified
+            if date_str:
                 date_query = req.get_param_as_float("date")
                 user_images = user_images.filter(Image.timestamp_created == date_query)
 
-            elif "start_date" in params or "end_date" in params:
-                if "end_date" not in params or "start_date" not in params:
+            elif start_date or end_date:
+                if start_date is None or end_date is None:
                     raise falcon.HTTPBadRequest(
                         title="Bad Request: Invalid Parameters",
                         description="Both 'start_date' and 'end_date' must be specified"
                     )
-                else:
-                    start_date_query = req.get_param_as_float("start_date")
-                    end_date_query = req.get_param_as_float("end_date")
-                    user_images = user_images.filter(Image.timestamp_created.between(start_date_query, end_date_query))
+
+                start_date_query = req.get_param_as_float("start_date")
+                end_date_query = req.get_param_as_float("end_date")
+                user_images = user_images.filter(Image.timestamp_created.between(start_date_query, end_date_query))
 
             images = user_images.all()
 
-            resp.media = {
-                "images": [x.get_dict() for x in images]
-            }
+            resp.media = [x.get_dict() for x in images]
 
     @api.validate(resp=Response(HTTP_201=PostResponse))
     def on_post(self, req, resp):
@@ -126,7 +129,7 @@ class GetImageTagResource:
 
         Uploads an image to the server.
         """
-        form = req.get_media()
+        form = req.get_media()  # Request expects inputs as  form-data
         image_details = {}
         for part in form:
             if part.name == 'tags':

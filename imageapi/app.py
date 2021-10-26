@@ -1,13 +1,13 @@
 import falcon
-from falcon import RequestOptions
+from falcon_cors import CORS
+
+from db.manager import init_db
 from middleware.auth import AuthMiddleware
 from resources.auth import LoginResource, RegisterResource
 from resources.image import GetImageIDResource, GetImageTagResource
-from db.manager import init_db
-from resources.tag import TagResource, TagsResource, DeleteTagsResource
+from resources.tag import TagResource, TagsResource
 from schemas.base_api_spec import api
 from utils import ImageHandler
-from falcon_cors import CORS
 
 
 class ImageAPI(falcon.App):
@@ -27,7 +27,6 @@ class ImageAPI(falcon.App):
                     timedelta=app_config.auth.timedelta,
                     exempt_routes=[
                         "/api/user/login",
-                        "/api/user/register",
                         "/apidoc"
                     ]
                 ),
