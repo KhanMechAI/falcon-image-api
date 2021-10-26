@@ -2,8 +2,9 @@ import falcon
 from falcon import RequestOptions
 from middleware.auth import AuthMiddleware
 from resources.auth import LoginResource, RegisterResource
-from resources.image import GetImageIDResource, PostImageResource, GetImageTagResource
+from resources.image import GetImageIDResource, GetImageTagResource
 from db.manager import init_db
+from resources.tag import AddTagResource, DeleteTagResource
 from schemas.base_api_spec import api
 from utils import ImageHandler
 from falcon_cors import CORS
@@ -40,27 +41,25 @@ class ImageAPI(falcon.App):
             chunk_size=utils_config.ImageHandler.chunk_size
         )
 
+        self.resp_options.secure_cookies_by_default = app_config.secure_cookies_by_default,
+        self.req_options.keep_blank_qs_values = True
+
         register = RegisterResource()
         self.add_route("/api/user/register", register)
 
         login = LoginResource()
         self.add_route("/api/user/login", login)
 
+        # post_image = PostImageResource(im_handler)
+        # self.add_route("/api/images", post_image)
 
-        self.resp_options.secure_cookies_by_default = app_config.secure_cookies_by_default,
-        self.req_options.keep_blank_qs_values = True
+        get_image = GetImageIDResource(im_handler)
+        self.add_route("/api/image/{img_id:int}", get_image)
 
-        post_image = PostImageResource(im_handler)
-        self.add_route("/api/image", post_image)
+        images = GetImageTagResource(im_handler)
+        self.add_route("/api/images", images)
 
-        get_image_by_id = GetImageIDResource(im_handler)
-        self.add_route("/api/image/{img_id:int}", get_image_by_id)
-
-        get_image_by_tags = GetImageTagResource(im_handler)
-        self.add_route("/api/images/{tag}", get_image_by_tags)
-
-
-
-
+        add_tags = AddTagResource()
+        self.add_route("/api/{img_id:int}/tags", add_tags)
 
         api.register(self)

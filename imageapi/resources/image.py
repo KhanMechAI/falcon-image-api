@@ -5,7 +5,7 @@ from spectree import Response
 
 from db.models import Image, Tag, User
 from schemas.base_api_spec import api
-from schemas.image import GetResponse, PostResponse
+from schemas.image import GetResponse, ImagesQuery, PostResponse
 from utils import ImageHandler
 
 
@@ -23,22 +23,29 @@ class GetImageIDResource:
 
         Returns the image file specified by the ID. ID's are returned when the image is posted.
         """
+        user_email = req.context.user_email
 
         with req.context.session as session:
 
-            if not (image := session.query(Image).filter_by(id=img_id).first()):
+            if not (image := session.query(Image).get(img_id)):
                 raise falcon.HTTPNotFound()
-            elif image.user.email != req.context.user_email:
+
+            if image.user.email != user_email:
                 raise falcon.HTTPNotFound()
 
             resp.content_type = image.content_type
 
             resp.stream, resp.content_length = self.image_handler.load(image.path), image.size
-            resp.media = {"tags": [x.name for x in image.tags]}
-            # resp.downloadable_as = image.path # undecided on this
+
 
     @api.validate(resp=Response(HTTP_200=None, HTTP_404=None, HTTP_403=None))
     def on_delete(self, req, resp, img_id):
+        """
+        Delete image by ID
+
+        Delete an image with id = img_id from user profile
+        """
+        user_email = req.context.user_email
         with req.context.session as session:
 
             if not (image := session.query(Image).get(img_id)):
@@ -64,52 +71,52 @@ class GetImageTagResource:
     def __repr__(self):
         return "Image Resource"
 
-    @api.validate(resp=Response(HTTP_200=GetResponse, HTTP_404=None, HTTP_403=None))
-    def on_get(self, req, resp, tag):
+    @api.validate(query=ImagesQuery, resp=Response(HTTP_200=GetResponse, HTTP_404=None, HTTP_403=None))
+    def on_get(self, req, resp):
         """
-        Get image by ID
+        Retrieve images
 
-        Returns the image file specified by the ID. ID's are returned when the image is posted.
+        Retrieves image collection by 'tag', 'date' (unix timestamp) or date range (using start_date and end_date).
+        'date' will take precedence over 'start_date' and 'end_date'.
         """
+        params = req.params
+        user_email = req.context.user_email
 
         with req.context.session as session:
 
-            if not (session.query(Tag).filter_by(tag=tag).first()):
-                raise falcon.HTTPNotFound(
-                    title="Tag Not Found",
-                    description="The supplied tag was not found on the server"
-                )
+            # Get query of all users images first
+            user_images = session.query(Image).filter(User.email == user_email)
+            if not (user_images.first()):
+                resp.media = {
+                    "images": []
+                }
+                return
 
-            images = (
-                session.query(Image)
-                    .join(Tag, Image.tags)
-                    .where(Tag.tag == tag)
-                    .join(User, Image.user)
-                    .where(User.email == req.context.user_email)
-                    .all()
-            )
+            # Modify query if tag filter specified
+            if "tag" in params:
+                user_images = user_images.filter(Tag.tag == params["tag"])
 
+            # Modify query if tag filter specified
+            if "date" in params:
+                date_query = req.get_param_as_float("date")
+                user_images = user_images.filter(Image.timestamp_created == date_query)
+
+            elif "start_date" in params or "end_date" in params:
+                if "end_date" not in params or "start_date" not in params:
+                    raise falcon.HTTPBadRequest(
+                        title="Bad Request: Invalid Parameters",
+                        description="Both 'start_date' and 'end_date' must be specified"
+                    )
+                else:
+                    start_date_query = req.get_param_as_float("start_date")
+                    end_date_query = req.get_param_as_float("end_date")
+                    user_images = user_images.filter(Image.timestamp_created.between(start_date_query, end_date_query))
+
+            images = user_images.all()
 
             resp.media = {
-                "images": [
-                    {
-                        "img_id": x.id,
-                        "content_type": x.content_type,
-                        "size": x.size,
-                        "name": x.name
-                    }
-                    for x in images
-                ]
+                "images": [x.get_dict() for x in images]
             }
-            # resp.downloadable_as = image.path # undecided on this
-
-
-class PostImageResource:
-    def __init__(self, image_handler: ImageHandler):
-        self.image_handler: ImageHandler = image_handler
-
-    def __repr__(self):
-        return "Image Resource"
 
     @api.validate(resp=Response(HTTP_201=PostResponse))
     def on_post(self, req, resp):
@@ -119,6 +126,7 @@ class PostImageResource:
         Uploads an image to the server.
         """
         form = req.get_media()
+        image_details = {}
         for part in form:
             if part.name == 'tags':
                 # Body part is a JSON document, do something useful with it
@@ -126,7 +134,10 @@ class PostImageResource:
             elif part.name == 'image':
                 # Store this body part in a file
                 image_details = self.image_handler.save(part.stream, part.content_type, part.secure_filename)
-
+        if not image_details:
+            raise falcon.HTTPBadRequest(
+                description="Must include image object"
+            )
         with req.context.session as session:
             user = session.query(User).filter_by(email=req.context.user_email).first()
             image = Image(

@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Any, Dict, List
 
 from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer, LargeBinary, String, Table
 from sqlalchemy.ext.compiler import compiles
@@ -129,3 +130,18 @@ class Image(Base):
         self.size = size
         self.path = path
         self.uuid = image_uuid
+
+    def get_dict(self) -> Dict[str, Any]:
+        base_dict = {
+            "img_id": self.id,
+            "content_type": self.content_type,
+            "size": self.size,
+            "name": self.name,
+        }
+        base_dict.update(self.get_tags())
+        return base_dict
+
+    def get_tags(self) -> Dict[str, List]:
+        return {
+            "tags": [x.tag for x in self.tags]
+        }
