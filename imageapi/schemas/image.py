@@ -1,31 +1,37 @@
 from enum import Enum
-from typing import Optional
+from typing import List, Optional
 
 from pydantic import BaseModel
 
+
+class TagsSchema(BaseModel):
+    __root__: List[str] = ["tag"]
+
+class TagPut(BaseModel):
+    tags: TagsSchema
 
 class ImageType(str, Enum):
     jpeg = "image/jpeg"
     png = "image/png"
 
 
-class GetResponse(BaseModel):
-    stream: bytes = b"image byte string"
-    name: str = "image name"
-
-    class Config:
-        title = "Image"
-        content: ImageType
-
-
-class Query(BaseModel):
-    img_id: int
-
-
-class PostResponse(BaseModel):
-    name: str = "image original name"
+class ImageResource(BaseModel):
+    img_id: int = 1
+    content_type: str = ImageType
     size: int = 512
-    id: int = 5
+    name: str = "my_image.png"
+    tags: TagsSchema
+
+class ImagePost(BaseModel):
+    image: bytes = b"some image bytes"
+    tags: TagsSchema
+
+class ImagesSchema(BaseModel):
+    __root__: List[ImageResource]
+
+
+class QuerySchema(BaseModel):
+    img_id: int
 
 
 class Timestamp(BaseModel):
@@ -33,6 +39,7 @@ class Timestamp(BaseModel):
 
     class Config:
         title = "Unix timestamp"
+
 
 class ImagesQuery(BaseModel):
     tag: Optional[str] = "my image tag"

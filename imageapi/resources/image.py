@@ -5,7 +5,7 @@ from spectree import Response
 
 from db.models import Image, Tag, User
 from schemas.base_api_spec import api
-from schemas.image import GetResponse, ImagesQuery, PostResponse
+from schemas.image import ImagePost, ImageResource, ImagesQuery, ImagesSchema
 from utils import ImageHandler
 
 
@@ -16,7 +16,8 @@ class GetImageIDResource:
     def __repr__(self):
         return "Image Resource"
 
-    @api.validate(resp=Response(HTTP_200=GetResponse, HTTP_404=None, HTTP_403=None))
+    # Cant run validator on this method as pydantic doesnt have file types
+    @api.validate(resp=Response(HTTP_200=None, HTTP_404=None, HTTP_403=None))
     def on_get(self, req, resp, img_id):
         """
         Get image by ID
@@ -73,7 +74,7 @@ class GetImageTagResource:
     def __repr__(self):
         return "Image Resource"
 
-    @api.validate(query=ImagesQuery, resp=Response(HTTP_200=GetResponse, HTTP_404=None, HTTP_403=None))
+    @api.validate(query=ImagesQuery, resp=Response(HTTP_200=ImagesSchema, HTTP_404=None, HTTP_403=None))
     def on_get(self, req, resp):
         """
         Retrieve images
@@ -122,7 +123,8 @@ class GetImageTagResource:
 
             resp.media = [x.get_dict() for x in images]
 
-    @api.validate(resp=Response(HTTP_201=PostResponse))
+    # Cant set payload validation as pydantic doesnt support file types or complex file types
+    @api.validate(resp=Response(HTTP_201=ImageResource))
     def on_post(self, req, resp):
         """
         Upload an image
@@ -162,9 +164,5 @@ class GetImageTagResource:
             session.add(user)
             session.commit()
 
-            resp.media = {
-                "name": image_details["name"],
-                "size": image_details["size"],
-                "id": image.id,
-            }
-        resp.status = falcon.HTTP_CREATED
+            resp.media = image.get_dict()
+            resp.status = falcon.HTTP_CREATED

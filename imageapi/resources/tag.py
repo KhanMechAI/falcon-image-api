@@ -3,14 +3,14 @@ from spectree import Response
 
 from db.models import Image, Tag
 from schemas.base_api_spec import api
-from schemas.image import GetResponse
+from schemas.image import TagPut, TagsSchema
 
 
 class TagsResource:
     def __repr__(self):
         return "Tag Resource"
 
-    @api.validate(resp=Response(HTTP_200=GetResponse, HTTP_404=None, HTTP_403=None))
+    @api.validate(resp=Response(HTTP_200=TagsSchema, HTTP_404=None, HTTP_403=None))
     def on_get(self, req, resp, img_id):
         """
         Get tags on an image
@@ -27,11 +27,9 @@ class TagsResource:
             if image.user.email != user_email:
                 raise falcon.HTTPNotFound()
 
-            resp.content_type = image.content_type
+            resp.media = image.tag_list
 
-            resp.media = image.get_tags()
-
-    @api.validate(resp=Response(HTTP_200=None, HTTP_404=None, HTTP_403=None))
+    @api.validate(resp=Response(HTTP_200=TagsSchema, HTTP_404=None, HTTP_403=None), json=TagPut)
     def on_put(self, req, resp, img_id):
         """
         Replace tags
@@ -69,7 +67,7 @@ class TagsResource:
             session.add(image)
             session.commit()
 
-            resp.media = image.get_tags()
+            resp.media = image.tag_list
 
     @api.validate(resp=Response(HTTP_200=None, HTTP_404=None, HTTP_403=None))
     def on_delete(self, req, resp, img_id):
@@ -92,27 +90,18 @@ class TagsResource:
             session.add(image)
             session.commit()
 
-            resp.media = image.get_tags()
-
 
 class TagResource:
     def __repr__(self):
         return "Tag Resource"
 
-    @api.validate(resp=Response(HTTP_200=None, HTTP_404=None, HTTP_403=None))
+    @api.validate(resp=Response(HTTP_200=TagsSchema, HTTP_404=None, HTTP_403=None))
     def on_post(self, req, resp, img_id, tag):
         """
         Add tag
 
         Adds a single tag to an image
         """
-        if not (new_tags := req.media):
-            resp.status = falcon.HTTP_304
-            resp.media = {
-                "title": "Resource not modified",
-                "description": "Empty payload, requires tags to be submitted."
-            }
-            return
 
         user_email = req.context.user_email
         with req.context.session as session:
@@ -140,7 +129,7 @@ class TagResource:
             session.commit()
 
             resp.status = falcon.HTTP_CREATED
-            resp.media = image.get_tags()
+            resp.media = image.tag_list
 
     @api.validate(resp=Response(HTTP_200=None, HTTP_404=None, HTTP_403=None))
     def on_delete(self, req, resp, img_id, tag):
@@ -163,5 +152,3 @@ class TagResource:
 
             session.add(image)
             session.commit()
-
-            resp.media = image.get_tags()

@@ -132,7 +132,7 @@ class Image(Base):
         self.uuid = image_uuid
 
     @property
-    def _tags(self):
+    def tag_list(self):
         return [x.tag for x in self.tags]
 
     def get_dict(self) -> Dict[str, Any]:
@@ -147,8 +147,8 @@ class Image(Base):
 
     def get_tags(self) -> Dict[str, List]:
         return {
-            "tags": self._tags
+            "tags": self.tag_list
         }
 
     def has_tag(self, tag):
-        return tag in self._tags
+        return tag in self.tag_list
