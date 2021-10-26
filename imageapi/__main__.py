@@ -4,8 +4,8 @@ from wsgiref.simple_server import make_server
 import dynamic_yaml
 from waitress import serve
 
-from app import ImageAPI
-from utils import load_config
+from .app import ImageAPI
+from .utils import load_config
 
 
 class WaitressServer:
@@ -29,15 +29,10 @@ def main(deployment: str):
 
     app = ImageAPI(app_config, db_config, utils_config)
 
-    with make_server('', 8000, app) as httpd:
-        print('Serving on port 8000...')
 
-        # Serve until process is killed
-        httpd.serve_forever()
+    server = WaitressServer(config, app)
 
-    # server = WaitressServer(config, app)
-
-    # server.start()
+    server.start()
 
 
 main("dev")

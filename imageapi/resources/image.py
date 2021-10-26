@@ -3,10 +3,10 @@ import json
 import falcon
 from spectree import Response
 
-from db.models import Image, Tag, User
-from schemas.base_api_spec import api
-from schemas.image import ImageResource, ImagesQuery, ImagesSchema
-from utils import ImageHandler
+from ..db.models import Image, Tag, User
+from ..schemas.base_api_spec import api
+from ..schemas.image import ImageResource, ImagesQuery, ImagesSchema
+from ..utils import ImageHandler
 
 
 class GetImageIDResource:

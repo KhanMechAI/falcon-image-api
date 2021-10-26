@@ -3,13 +3,13 @@ from pathlib import Path
 import falcon
 from falcon_cors import CORS
 
-from db.manager import init_db
-from middleware.auth import AuthMiddleware
-from resources.auth import LoginResource, RegisterResource
-from resources.image import GetImageIDResource, GetImageTagResource
-from resources.tag import TagResource, TagsResource
-from schemas.base_api_spec import api
-from utils import ImageHandler
+from .db.manager import init_db
+from .middleware.auth import AuthMiddleware
+from .resources.auth import LoginResource, RegisterResource
+from .resources.image import GetImageIDResource, GetImageTagResource
+from .resources.tag import TagResource, TagsResource
+from .schemas.base_api_spec import api
+from .utils import ImageHandler
 
 
 class ImageAPI(falcon.App):

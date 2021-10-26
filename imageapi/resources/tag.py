@@ -1,9 +1,9 @@
 import falcon
 from spectree import Response
 
-from db.models import Image, Tag
-from schemas.base_api_spec import api
-from schemas.tag import TagPut, TagsSchema
+from ..db.models import Image, Tag
+from ..schemas.base_api_spec import api
+from ..schemas.tag import TagPut, TagsSchema
 
 
 class TagsResource:

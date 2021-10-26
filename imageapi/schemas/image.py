@@ -3,7 +3,7 @@ from typing import List, Optional
 
 from pydantic import BaseModel
 
-from schemas.tag import TagsSchema
+from .tag import TagsSchema
 
 
 class ImageType(str, Enum):

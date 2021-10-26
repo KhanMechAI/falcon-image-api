@@ -4,7 +4,7 @@ from typing import List
 import falcon
 import jwt
 
-from db.models import User
+from ..db.models import User
 
 
 class AuthMiddleware:

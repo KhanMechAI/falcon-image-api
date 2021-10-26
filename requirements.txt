@@ -1,5 +1,7 @@
-SQLAlchemy
 falcon
+falcon_sqla
+SQLAlchemy
+SQLAlchemy-Utils
 pytest
 waitress
 werkzeug
@@ -7,3 +9,5 @@ requests
 pydantic
 spectree
 pyjwt
+dynamic-yaml
+falcon-cors

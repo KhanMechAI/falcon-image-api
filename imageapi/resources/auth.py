@@ -1,9 +1,9 @@
 import falcon
 from spectree import Response
 
-from db.models import User
-from schemas.auth import AlreadyRegisteredSchema, LoginSchema, RegisterSchema
-from schemas.base_api_spec import api
+from ..db.models import User
+from ..schemas.auth import AlreadyRegisteredSchema, LoginSchema, RegisterSchema
+from ..schemas.base_api_spec import api
 
 
 class RegisterResource:
