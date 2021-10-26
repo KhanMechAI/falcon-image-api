@@ -44,21 +44,28 @@ class TagResource:
 
         with req.context.session as session:
 
-            if not (image := session.query(Image).filter_by(id=img_id).first()):
-                raise falcon.HTTPNotFound()
-            elif image.user.email != req.context.user_email:
+            if not (image := session.query(Image).get()):
                 raise falcon.HTTPNotFound()
 
+            # Check user owns the image
+            if image.user.email != req.context.user_email:
+                raise falcon.HTTPNotFound()
+
+            # Clear existing tags
             [image.tags.remove(t) for t in image.tags]
 
+            # Add tags from payload
             for tag in new_tags["tags"]:
                 if not (new_tag := session.query(Tag).filter_by(tag=tag).first()):
+                    # Create new tag if does not exist
                     new_tag = Tag(tag=tag)
 
                 image.tags.append(new_tag)
 
             session.add(image)
             session.commit()
+            'POST /images/{image_id}/tags'
+            'DELETE /images/{image_id}/tags/{tag_id}'
 
             resp.media = {"tags": [x.name for x in image.tags]}
 

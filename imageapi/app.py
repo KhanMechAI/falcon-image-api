@@ -40,11 +40,12 @@ class ImageAPI(falcon.App):
             chunk_size=utils_config.ImageHandler.chunk_size
         )
 
+        register = RegisterResource()
+        self.add_route("/api/user/register", register)
+
         login = LoginResource()
         self.add_route("/api/user/login", login)
 
-        register = RegisterResource()
-        self.add_route("/api/user/register", register)
 
         self.resp_options.secure_cookies_by_default = app_config.secure_cookies_by_default,
         self.req_options.keep_blank_qs_values = True
@@ -57,6 +58,8 @@ class ImageAPI(falcon.App):
 
         get_image_by_tags = GetImageTagResource(im_handler)
         self.add_route("/api/images/{tag}", get_image_by_tags)
+
+
 
 
 

@@ -41,7 +41,7 @@ class GetImageIDResource:
     def on_delete(self, req, resp, img_id):
         with req.context.session as session:
 
-            if not (image := session.query(Image).filter_by(id=img_id).first()):
+            if not (image := session.query(Image).get(img_id)):
                 raise falcon.HTTPNotFound()
             elif image.user.email != req.context.user_email:
                 raise falcon.HTTPNotFound()
@@ -88,6 +88,7 @@ class GetImageTagResource:
                     .where(User.email == req.context.user_email)
                     .all()
             )
+
 
             resp.media = {
                 "images": [
