@@ -4,7 +4,7 @@ from middleware.auth import AuthMiddleware
 from resources.auth import LoginResource, RegisterResource
 from resources.image import GetImageIDResource, GetImageTagResource
 from db.manager import init_db
-from resources.tag import AddTagResource, DeleteTagResource
+from resources.tag import TagResource, TagsResource, DeleteTagsResource
 from schemas.base_api_spec import api
 from utils import ImageHandler
 from falcon_cors import CORS
@@ -50,16 +50,16 @@ class ImageAPI(falcon.App):
         login = LoginResource()
         self.add_route("/api/user/login", login)
 
-        # post_image = PostImageResource(im_handler)
-        # self.add_route("/api/images", post_image)
-
         get_image = GetImageIDResource(im_handler)
         self.add_route("/api/image/{img_id:int}", get_image)
 
         images = GetImageTagResource(im_handler)
         self.add_route("/api/images", images)
 
-        add_tags = AddTagResource()
-        self.add_route("/api/{img_id:int}/tags", add_tags)
+        tags = TagsResource()
+        self.add_route("/api/{img_id:int}/tags", tags)
+
+        tag = TagResource()
+        self.add_route("/api/{img_id:int}/tags/{tag}", tag)
 
         api.register(self)

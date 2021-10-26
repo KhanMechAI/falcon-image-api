@@ -50,7 +50,8 @@ class GetImageIDResource:
 
             if not (image := session.query(Image).get(img_id)):
                 raise falcon.HTTPNotFound()
-            elif image.user.email != req.context.user_email:
+
+            if image.user.email != user_email:
                 raise falcon.HTTPNotFound()
 
             delete_state = self.image_handler.delete(image.path)
