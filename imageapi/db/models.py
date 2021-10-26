@@ -1,30 +1,12 @@
-from enum import Enum
+from datetime import datetime
 from typing import Any, Dict, List
 
-from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer, LargeBinary, String, Table
-from sqlalchemy.ext.compiler import compiles
+from sqlalchemy import Column, Float, ForeignKey, Integer, LargeBinary, String, Table
 from sqlalchemy.orm import declarative_base, relationship
-from sqlalchemy.sql import expression, func
-
-from datetime import datetime
-
 from werkzeug.security import check_password_hash, generate_password_hash
 
 Base = declarative_base()
 
-
-class utcnow(expression.FunctionElement):
-    type = DateTime()
-
-
-@compiles(utcnow, 'postgresql')
-def pg_utcnow(element, compiler, **kw):
-    return "TIMEZONE('utc', CURRENT_TIMESTAMP)"
-
-
-@compiles(utcnow, 'mssql')
-def ms_utcnow(element, compiler, **kw):
-    return "GETUTCDATE()"
 
 class User(Base):
     __tablename__ = "users"
@@ -33,9 +15,11 @@ class User(Base):
     email = Column(String)
     password_hash = Column(String)
     timestamp_created = Column(Float, default=datetime.utcnow().timestamp())
-    timestamp_modified = Column(Float, default=datetime.utcnow().timestamp(), onupdate=datetime.utcnow(
+    timestamp_modified = Column(
+        Float, default=datetime.utcnow().timestamp(), onupdate=datetime.utcnow(
 
-    ).timestamp())
+        ).timestamp()
+    )
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password, method="pbkdf2:sha256", salt_length=16)
@@ -46,23 +30,6 @@ class User(Base):
     def __init__(self, email: str, password: str):
         self.email = email
         self.set_password(password)
-
-
-class Usage(Base):
-    __tablename__ = "usage"
-    RESOURCE_CHOICES = (
-
-    )
-
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    timestamp = Column(Float, default=datetime.utcnow().timestamp())
-    user_id = Column(Integer, ForeignKey("users.id"))
-    user = relationship(
-        "User",
-        backref="usage"
-    )
-    # resource = Column(ChoiceType())  # ToDo
-    # response = Column()  # ToDo
 
 
 image_tags = Table(
@@ -90,12 +57,6 @@ class Tag(Base):
         self.tag = tag
 
 
-class ImageTypes(Enum):
-    tif = 1
-    jpeg = 2
-    png = 3
-
-
 class Image(Base):
     __tablename__ = "images"
 
@@ -121,9 +82,9 @@ class Image(Base):
         Float, default=datetime.utcnow().timestamp(), onupdate=datetime.utcnow(
 
         ).timestamp()
-        )
+    )
 
-    def __init__(self, name: str, image_type:str, content_type:str, size:int, path:str, image_uuid:bytes):
+    def __init__(self, name: str, image_type: str, content_type: str, size: int, path: str, image_uuid: bytes):
         self.name = name
         self.type = image_type
         self.content_type = content_type

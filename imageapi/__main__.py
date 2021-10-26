@@ -1,11 +1,11 @@
-from waitress import serve
-import dynamic_yaml
 from pathlib import Path
-from utils import load_config
+from wsgiref.simple_server import make_server
+
+import dynamic_yaml
+from waitress import serve
 
 from app import ImageAPI
-
-from wsgiref.simple_server import make_server
+from utils import load_config
 
 
 class WaitressServer:
@@ -20,7 +20,6 @@ class WaitressServer:
 
 
 def main(deployment: str):
-
     config = load_config(Path.cwd() / "imageapi" / "config.yml")
     utils_config = config.utils
     # Can add production deployments here

@@ -27,9 +27,9 @@ test:
     algorithm: "HS256"
   secure_cookies_by_default: False
   dirs:
-    root: "tests/"
-    images: "{test.dirs.root}images/{img_id:int}"
-
+    root: "/"
+    images: "{test.dirs.root}images/"
   database:
     sqlite:
-      connection_string: "sqlite://"
+      name: "test.db"
+      connection_string: "sqlite://{test.dirs.root}{test.database.sqlite.name}"

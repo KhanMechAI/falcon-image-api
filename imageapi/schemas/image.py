@@ -3,12 +3,8 @@ from typing import List, Optional
 
 from pydantic import BaseModel
 
+from schemas.tag import TagsSchema
 
-class TagsSchema(BaseModel):
-    __root__: List[str] = ["tag"]
-
-class TagPut(BaseModel):
-    tags: TagsSchema
 
 class ImageType(str, Enum):
     jpeg = "image/jpeg"
@@ -22,9 +18,11 @@ class ImageResource(BaseModel):
     name: str = "my_image.png"
     tags: TagsSchema
 
+
 class ImagePost(BaseModel):
     image: bytes = b"some image bytes"
     tags: TagsSchema
+
 
 class ImagesSchema(BaseModel):
     __root__: List[ImageResource]

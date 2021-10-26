@@ -1,5 +1,4 @@
-from enum import Enum
-from pydantic import BaseModel, Field, EmailStr, SecretStr
+from pydantic import BaseModel, EmailStr, SecretStr
 
 
 class RegisterSchema(BaseModel):
@@ -15,4 +14,3 @@ class AlreadyRegisteredSchema(BaseModel):
 class LoginSchema(RegisterSchema):
     email: str = EmailStr("api_user@imageapi.com.au")
     password: str = SecretStr("mystrongpassword")
-

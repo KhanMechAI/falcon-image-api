@@ -1,12 +1,9 @@
 import falcon
-import json
-
-from falcon_sqla import Manager
 from spectree import Response
 
 from db.models import User
-from schemas.base_api_spec import api
 from schemas.auth import AlreadyRegisteredSchema, LoginSchema, RegisterSchema
+from schemas.base_api_spec import api
 
 
 class RegisterResource:

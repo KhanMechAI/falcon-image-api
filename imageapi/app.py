@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import falcon
 from falcon_cors import CORS
 
@@ -27,6 +29,7 @@ class ImageAPI(falcon.App):
                     timedelta=app_config.auth.timedelta,
                     exempt_routes=[
                         "/api/user/login",
+                        "/api/user/register",
                         "/apidoc"
                     ]
                 ),
@@ -34,6 +37,7 @@ class ImageAPI(falcon.App):
             ]
         )
         self.config = app_config
+        self.db_path = Path(db_config.name).absolute()
 
         im_handler = ImageHandler(
             outpath=self.config.dirs.images,

@@ -13,19 +13,6 @@ def load_config(config_path: Path):
     return config
 
 
-def check_mode(attribute, dec):
-    def _check_authorization(f):
-        def wrapper(self, *args):
-            mode = getattr(self, attribute)
-            if mode != "test":
-                return dec(f(self, *args))
-            return f(self, *args)
-
-        return wrapper
-
-    return _check_authorization
-
-
 class ImageHandler:
     """
     Used for file operations to save/load/delete
@@ -34,7 +21,7 @@ class ImageHandler:
 
     """
 
-    def __init__(self, outpath: [str, Path], chunk_size, uuidgen: uuid.uuid4 = uuid.uuid4, fopen: io.open=io.open):
+    def __init__(self, outpath: [str, Path], chunk_size, uuidgen: uuid.uuid4 = uuid.uuid4, fopen: io.open = io.open):
         self.root: Path = Path().cwd() / outpath
         if not self.root.exists():
             self.root.mkdir(exist_ok=True, parents=True)
@@ -43,7 +30,7 @@ class ImageHandler:
         self.chunk_size = chunk_size
 
     # put_object()
-    def save(self, image_stream: io.IOBase, image_content_type: str, orig_image_name:str) -> Dict[str,Any]:
+    def save(self, image_stream: io.IOBase, image_content_type: str, orig_image_name: str) -> Dict[str, Any]:
         ext = mimetypes.guess_extension(image_content_type)
         im_type = ext.replace(".", "")
         image_uuid = self._uuidgen()
@@ -52,13 +39,11 @@ class ImageHandler:
 
         with self._fopen(image_path, "wb") as image_file:
             chunk = image_stream.read(self.chunk_size)
-            size=len(chunk)
+            size = len(chunk)
             while chunk:
                 image_file.write(chunk)
                 chunk = image_stream.read(self.chunk_size)
                 size += len(chunk)
-
-
 
         return dict(
             name=orig_image_name,
@@ -82,4 +67,3 @@ class ImageHandler:
             return True
 
         return False
-

@@ -1,8 +1,8 @@
+from datetime import datetime
 from typing import List
 
 import falcon
 import jwt
-from datetime import datetime
 
 from db.models import User
 
@@ -39,7 +39,7 @@ class AuthMiddleware:
         user_email = self.check_token(token)
 
         with req.context.session as session:
-            if (user :=session.query(User).filter_by(email=user_email).first()):
+            if session.query(User).filter_by(email=user_email).first():
                 req.context.user_email = user_email
                 return True
             return False

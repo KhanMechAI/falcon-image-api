@@ -3,7 +3,7 @@ from spectree import Response
 
 from db.models import Image, Tag
 from schemas.base_api_spec import api
-from schemas.image import TagPut, TagsSchema
+from schemas.tag import TagPut, TagsSchema
 
 
 class TagsResource:
@@ -54,7 +54,9 @@ class TagsResource:
                 raise falcon.HTTPNotFound()
 
             # Clear existing tags
-            [image.tags.remove(t) for t in image.tags]
+
+            image.tags.clear()
+            session.commit()
 
             # Add tags from payload
             for tag in new_tags["tags"]:
@@ -152,3 +154,5 @@ class TagResource:
 
             session.add(image)
             session.commit()
+
+        resp.status = falcon.HTTP_OK

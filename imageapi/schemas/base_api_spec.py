@@ -1,4 +1,4 @@
-from spectree import Response, SpecTree, Tag
+from spectree import SpecTree
 
 
 def before_handler(req, resp, err, instance):
@@ -15,7 +15,6 @@ def after_handler(req, resp, err, instance):
         print(err)
         print(resp)
         print(req)
-
 
 
 api = SpecTree(

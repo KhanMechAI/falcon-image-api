@@ -5,7 +5,7 @@ from spectree import Response
 
 from db.models import Image, Tag, User
 from schemas.base_api_spec import api
-from schemas.image import ImagePost, ImageResource, ImagesQuery, ImagesSchema
+from schemas.image import ImageResource, ImagesQuery, ImagesSchema
 from utils import ImageHandler
 
 
@@ -38,7 +38,6 @@ class GetImageIDResource:
 
             resp.stream, resp.content_length = self.image_handler.load(image.path), image.size
 
-
     @api.validate(resp=Response(HTTP_200=None, HTTP_404=None, HTTP_403=None))
     def on_delete(self, req, resp, img_id):
         """
@@ -63,8 +62,6 @@ class GetImageIDResource:
                 )
             session.delete(image)
             session.commit()
-
-
 
 
 class GetImageTagResource:
@@ -133,10 +130,11 @@ class GetImageTagResource:
         """
         form = req.get_media()  # Request expects inputs as  form-data
         image_details = {}
+        tags = []
         for part in form:
             if part.name == 'tags':
                 # Body part is a JSON document, do something useful with it
-                payload = json.loads(part.data)
+                tags = part.get_media()
             elif part.name == 'image':
                 # Store this body part in a file
                 image_details = self.image_handler.save(part.stream, part.content_type, part.secure_filename)
@@ -154,7 +152,7 @@ class GetImageTagResource:
                 path=image_details["path"],
                 image_uuid=image_details["uuid"].bytes,
             )
-            for tag in payload["tags"]:
+            for tag in tags:
                 if not (new_tag := session.query(Tag).filter_by(tag=tag).first()):
                     new_tag = Tag(tag=tag)
 
