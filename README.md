@@ -1,6 +1,6 @@
 # Falcon ImageAPI
 
-Backend API challenge for [annalise.ai](https://annalise.ai/solutions/annalise-cxr/).
+A basic Image processing API built in Falcon.
 
 ## Installation
 
@@ -127,14 +127,11 @@ So what did I miss?
   and `GET host:port/api/image/{img_id}` endpoints using `spectree`/`pydantic`. Given a bit more time, I'm sure I could've got it there, but I decided to cut my losses.
 * GitHub Actions. It was in my initial plan to write some actions to run the testing but I just ran short of time, unfortunately.
 * More complete test suite. I would build this out to cover many, many more test cases.
-* Commit messages. These could have been better, very open to feedback/direction!
 * Versioning. I had an oversight w.r.t versioning the API. I would modify my implementation to include a `/v<x>/` in the path. 
 
-## Closing Notes
+## Contribution
 
-Thanks for taking the time to look over what I've developed. Not knowing [Falcon](https://falcon.readthedocs.io/en/stable/) beforehand certainly made this an interesting challenge. But learning things quickly is one of my strengths as I hope I've demonstrated.
-
-Really looking forward to an opportunity at annalise.ai, it's what I've been working towards for some time now.
+IF you'd like to contribute, feel free to rais a PR or fork me!
 
 Cheers,
 
